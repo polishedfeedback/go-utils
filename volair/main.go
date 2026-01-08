@@ -33,7 +33,7 @@ func getPalletDetails() {
 	fmt.Print("Enter the height of the pallet (in cm): ")
 	scanner.Scan()
 	heightInput := scanner.Text()
-	if heightValue, err := strconv.ParseFloat(heightInput, 64); err != nil {
+	if heightValue, err := strconv.ParseFloat(heightInput, 64); err == nil {
 		height = heightValue
 	} else {
 		fmt.Println("Invalid height value. Please enter a valid number")
@@ -43,7 +43,7 @@ func getPalletDetails() {
 	fmt.Print("Enter the weight of the pallet (in cm): ")
 	scanner.Scan()
 	weightInput := scanner.Text()
-	if weightValue, err := strconv.ParseFloat(weightInput, 64); err != nil {
+	if weightValue, err := strconv.ParseFloat(weightInput, 64); err == nil {
 		palletWeight = weightValue
 	} else {
 		fmt.Println("Invalid weight value. Please enter a valid number")
