@@ -61,7 +61,7 @@ func main() {
 
 		if destDir != "" {
 			if Preview {
-				previewMove(src, destDir, file.Name())
+				previewMove(destDir, file.Name())
 				fmt.Println("\n--- Preview Mode ---")
 				fmt.Println("Run without --preview flag to execute these changes")
 			} else {
@@ -69,7 +69,7 @@ func main() {
 			}
 		} else {
 			if Preview {
-				previewMove(src, filepath.Join(Path, "others"), file.Name())
+				previewMove(filepath.Join(Path, "others"), file.Name())
 				fmt.Println("\n--- Preview Mode ---")
 				fmt.Println("Run without --preview flag to execute these changes")
 			} else {
@@ -131,7 +131,7 @@ func getUniqueFilename(path string) string {
 	return newPath
 }
 
-func previewMove(src, destDir, fileName string) {
+func previewMove(destDir, fileName string) {
 	destPath := filepath.Join(destDir, fileName)
 
 	if _, err := os.Stat(destPath); err == nil {
