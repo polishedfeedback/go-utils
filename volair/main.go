@@ -40,7 +40,7 @@ func getPalletDetails() {
 		return
 	}
 
-	fmt.Print("Enter the weight of the pallet (in cm): ")
+	fmt.Print("Enter the weight of the pallet (in kg): ")
 	scanner.Scan()
 	weightInput := scanner.Text()
 	if weightValue, err := strconv.ParseFloat(weightInput, 64); err == nil {
