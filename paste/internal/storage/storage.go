@@ -4,62 +4,66 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type Storage interface {
-	Save(url, content string) error
+	Save(url, content string, expiresIn time.Duration) error
 	Get(url string) (string, error)
 	Exists(url string) bool
 	Delete(url string) error
 	List() []string
 }
 
-type MemoryStorage struct {
-	pastes map[string]string
-}
+// For maps
 
-func NewMemoryStorage() *MemoryStorage {
-	return &MemoryStorage{
-		pastes: make(map[string]string),
-	}
-}
+// type MemoryStorage struct {
+// 	pastes map[string]string
+// }
 
-func (m *MemoryStorage) Save(url, content string) error {
-	if _, exists := m.pastes[url]; exists {
-		return fmt.Errorf("URL already exists")
-	}
-	m.pastes[url] = content
-	return nil
-}
+// func NewMemoryStorage() *MemoryStorage {
+// 	return &MemoryStorage{
+// 		pastes: make(map[string]string),
+// 	}
+// }
 
-func (m *MemoryStorage) Get(url string) (string, error) {
-	val, exists := m.pastes[url]
-	if !exists {
-		return "", fmt.Errorf("URL not found")
-	}
-	return val, nil
-}
+// func (m *MemoryStorage) Save(url, content string) error {
+// 	if _, exists := m.pastes[url]; exists {
+// 		return fmt.Errorf("URL already exists")
+// 	}
+// 	m.pastes[url] = content
+// 	return nil
+// }
 
-func (m *MemoryStorage) Exists(url string) bool {
-	_, exists := m.pastes[url]
-	return exists
-}
+// func (m *MemoryStorage) Get(url string) (string, error) {
+// 	val, exists := m.pastes[url]
+// 	if !exists {
+// 		return "", fmt.Errorf("URL not found")
+// 	}
+// 	return val, nil
+// }
 
-func (m *MemoryStorage) Delete(url string) error {
-	if _, exists := m.pastes[url]; exists {
-		delete(m.pastes, url)
-		return nil
-	}
-	return fmt.Errorf("URL not found")
-}
+// func (m *MemoryStorage) Exists(url string) bool {
+// 	_, exists := m.pastes[url]
+// 	return exists
+// }
 
-func (m *MemoryStorage) List() []string {
-	var urls []string
-	for key := range m.pastes {
-		urls = append(urls, key)
-	}
-	return urls
-}
+// func (m *MemoryStorage) Delete(url string) error {
+// 	if _, exists := m.pastes[url]; exists {
+// 		delete(m.pastes, url)
+// 		return nil
+// 	}
+// 	return fmt.Errorf("URL not found")
+// }
+
+// func (m *MemoryStorage) List() []string {
+// 	var urls []string
+// 	for key := range m.pastes {
+// 		urls = append(urls, key)
+// 	}
+// 	return urls
+// }
 
 // SQL
 type SQLiteStorage struct {
@@ -84,7 +88,7 @@ func NewSQLiteStorage(dbPath string) (*SQLiteStorage, error) {
 	return &SQLiteStorage{db: db}, nil
 }
 
-func (s *SQLiteStorage) Save(url, content string) error {
+func (s *SQLiteStorage) Save(url, content string, expiresIn time.Duration) error {
 	var count int
 	err := s.db.QueryRow("SELECT COUNT(*) FROM pastes WHERE url = ?", url).Scan(&count)
 	if err != nil {
@@ -94,9 +98,15 @@ func (s *SQLiteStorage) Save(url, content string) error {
 		return fmt.Errorf("URL already exists")
 	}
 
+	var expiresAt interface{}
+	if expiresIn > 0 {
+		expiresAt = time.Now().Add(expiresIn).Format(time.RFC3339)
+	} else {
+		expiresAt = nil
+	}
 	_, err = s.db.Exec(
 		"INSERT INTO pastes (url, content, created_at, expires_at) VALUES (?, ?, ?, ?)",
-		url, content, time.Now().Format(time.RFC3339), nil)
+		url, content, time.Now().Format(time.RFC3339), expiresAt)
 	if err != nil {
 		return fmt.Errorf("error saving paste: %v", err)
 	}

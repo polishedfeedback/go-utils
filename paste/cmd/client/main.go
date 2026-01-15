@@ -19,6 +19,9 @@ func main() {
 
 	var server string
 	flag.StringVar(&server, "server", "http://localhost:8080", "server to upload the files")
+
+	var expires string
+	flag.StringVar(&expires, "expires", "", "expiry for the url")
 	flag.Parse()
 
 	if u == "" {
@@ -43,7 +46,12 @@ func main() {
 	}
 	fmt.Println("Content: ", content)
 
-	req, err := http.NewRequest(http.MethodPost, server+"/"+u, strings.NewReader(content))
+	requestUrl := server + "/" + u
+	if expires != "" {
+		requestUrl = requestUrl + "?expires=" + expires
+	}
+
+	req, err := http.NewRequest(http.MethodPost, requestUrl, strings.NewReader(content))
 	if err != nil {
 		log.Fatalf("Error sending post request to the server: %v", err)
 	}

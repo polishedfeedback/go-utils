@@ -4,6 +4,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/polishedfeedback/paste/internal/storage"
 )
@@ -38,7 +39,16 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		defer r.Body.Close()
-		err = h.storage.Save(url, string(body))
+		expiryStr := r.URL.Query().Get("expires")
+		var expiresIn time.Duration
+		if expiryStr != "" {
+			expiresIn, err = time.ParseDuration(expiryStr)
+			if err != nil {
+				http.Error(w, "Invalid expiry format: Use 1h, 30m, 24h, etc.", http.StatusBadRequest)
+				return
+			}
+		}
+		err = h.storage.Save(url, string(body), expiresIn)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusConflict)
 			return

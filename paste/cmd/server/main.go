@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/polishedfeedback/paste/internal/handler"
@@ -9,7 +10,10 @@ import (
 )
 
 func main() {
-	store := storage.NewMemoryStorage()
+	store, err := storage.NewSQLiteStorage("pastes.db")
+	if err != nil {
+		log.Fatal(err)
+	}
 	h := handler.NewHandler(store)
 
 	fmt.Println("Listening on port 8080")
